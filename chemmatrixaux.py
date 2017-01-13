@@ -46,3 +46,32 @@ def index_verify_1d(vec_index_i, atom_a_index, atom_b_index):
    except ChemMatrixAuxException:
       print('ChemMatrixAuxException: index_verify_1d: atom_a and atom_b cannot be the same atom!')
       sys.exit(1)
+
+
+def dx_pbc(x_a_oneaxis, x_b_oneaxis, L):
+   dx_oneaxis = x_a_oneaxis - x_b_oneaxis
+   if (x_a_oneaxis - x_b_oneaxis) > L/2:
+      dx_oneaxis -= L
+   elif (x_a_oneaxis - x_b_oneaxis) < L/2:
+      dx_oneaxis += L
+
+   return dx_oneaxis
+
+
+def dx_ab(X_m, vec_index_i, atom_a_index, atom_b_index, L):
+
+   if index_verify_1d(vec_index_i, atom_a_index, atom_b_index) == 'NA':
+      return 0
+   elif index_verify_1d(vec_index_i, atom_a_index, atom_b_index) == 'FT':
+      # Map vec_index_i's axis to atom b's axis. They need to be the same! 
+      x_a_oneaxis = X_m[vec_index_i]
+      atom_a_axis = vecindex_to_atomindex(vec_index_i)[1]
+      x_b_oneaxis = X_m[atomindex_to_vecindex(atom_b_index, atom_a_axis)]
+
+      return dx_pbc(x_a_oneaxis, x_b_oneaxis, L)
+   elif index_verify_1d(vec_index_i, atom_a_index, atom_b_index) == 'LT':
+      x_b_oneaxis = X_m[vec_index_i]
+      atom_b_axis = vecindex_to_atomindex(vec_index_i)[1]
+      x_a_oneaxis = X_m[atomindex_to_vecindex(atom_a_index, atom_b_axis)]
+
+      return dx_pbc(x_a_oneaxis, x_b_oneaxis, L)*(-1.0)
