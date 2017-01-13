@@ -69,7 +69,6 @@ def write_namd_conf_for_force(index, **kwargs):
    file_obj.write('set inputname\t"snapshot{0}"\n'.format(index))
    file_obj.write('structure\tstructure.psf\n')
    file_obj.write('coordinates\t$inputname.pdb\n')
-   file_obj.write('velocities\t$inputname.vel\n\n')
     
    file_obj.write('set outputname\t"snapshot{0}.out"\n'.format(index))
    file_obj.write('outputname\t$outputname\n')
@@ -83,7 +82,8 @@ def write_namd_conf_for_force(index, **kwargs):
    file_obj.write('switching\ton\n')
    file_obj.write('switchdist\t{0}\n'.format(switchdist))
    file_obj.write('pairlistdist\t{0}\n\n'.format(pairlistdist))
-    
+   
+   file_obj.write('temperature\t0.0\n')
    file_obj.write('timestep\t{0}\n'.format(dt))
    file_obj.write('rigidbonds\tall\n\n')
     
