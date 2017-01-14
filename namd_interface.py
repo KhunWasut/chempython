@@ -1,13 +1,47 @@
 ##### namd_interface.py #####
 
 import numpy as np
-import re
+import re, os
 
+from ..file_io import read_xyz
 
 # This is hardcoded for now
 head_pattern = re.compile(r'CRYST')
 first_atom_pattern = re.compile(r'LIT')
 end_pattern = re.compile(r'END')
+
+
+def read_pdb_snapshots(snapshot_dir_prefix):
+   file_pattern = re.compile(r'snapshot(\d+)(\w*).(\w+)')
+   snapshot_dir_ls = os.listdir(snapshot_dir_prefix)
+
+   # Sort for the highest number
+   snapshot_index_list = []
+   for filename in snapshot_dir_ls:
+      if file_pattern.search(filename):
+         snapshot_index = eval(file_pattern.search(filename).group(1))
+         snapshot_index_list.append(snapshot_index)
+
+   num_snapshots = max(snapshot_index_list)
+
+   # Actually reading the files. The list holds n numpy vectors.
+   snapshots_coord_list = []
+   snapshots_force_list = []
+
+   for i in range(num_snapshots):
+      coord_file_obj = open(os.path.join(snapshot_dir_prefix,'snapshot{0}.coord.xyz'.format(i+1)),'r')
+      force_file_obj = open(os.path.join(snapshot_dir_prefix,'snapshot{0}.force.xyz'.format(i+1)),'r')
+
+      coord_content = read_xyz(coord_file_obj)
+      force_content = read_xyz(coord_file_obj)
+
+      snapshots_coord_list.append(coord_content)
+      snapshots_force_list.append(force_content)
+
+      coord_file_obj.close()
+      force_file_obj.close()
+
+   return (snapshots_coord_list, snapshots_force_list)
 
 
 def write_single_pdb(headline, frame_lines, count, pdb_type):
