@@ -3,7 +3,7 @@
 import numpy as np
 import re, os
 
-from ..file_io import read_xyz
+from .file_io import read_xyz
 
 # This is hardcoded for now
 head_pattern = re.compile(r'CRYST')
