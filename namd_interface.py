@@ -33,7 +33,7 @@ def read_pdb_snapshots(snapshot_dir_prefix):
       force_file_obj = open(os.path.join(snapshot_dir_prefix,'snapshot{0}.force.xyz'.format(i+1)),'r')
 
       coord_content = read_xyz(coord_file_obj)
-      force_content = read_xyz(coord_file_obj)
+      force_content = read_xyz(force_file_obj)
 
       snapshots_coord_list.append(coord_content)
       snapshots_force_list.append(force_content)
