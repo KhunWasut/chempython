@@ -4,7 +4,8 @@
 import numpy as np
 import sys
 
-from ..chemmatrixaux import index_verify_1d, atomindex_to_vecindex, vecindex_to_atomindex, dx_pbc, dx_ab
+from ..chemmatrixaux import index_verify_1d, atomindex_to_vecindex, vecindex_to_atomindex, dx_pbc, dx_ab, \
+        d_dx_ab
 from ..pbc import pair_dx
 
 
@@ -74,6 +75,13 @@ def second_deriv_rab_wrt_xj(X_m, vec_index_j, atom_a_index, atom_b_index, sys_pa
    r_ab = pair_dx(x_a, x_b, L)
 
    # TO BE CONTINUED...
+   ##### REFACTORED CODES HERE  #####
+   ##### Don't have to care about possible domains! The new method will take care of it #####
+   hess_xj_rab = []
+   for k in range(X_m.shape):
+      the_atom = vecindex_to_atomindex(k):
+
+
    # Build a list of domain indices for r_ab
    possible_domains = [x_a_x_index, x_a_y_index, x_a_z_index, x_b_x_index, x_b_y_index, x_b_z_index]
 
@@ -86,6 +94,10 @@ def second_deriv_rab_wrt_xj(X_m, vec_index_j, atom_a_index, atom_b_index, sys_pa
          # Determine where k belongs
          the_atom = vecindex_to_atomindex(k)
 
+         ##### REFACTORED CODES HERE #####
+
+
+         ##### OLD CODES BELOW #####
          if the_atom[0] == atom_a_index:
             main_sign = 1.0
             another_numer_atom_vec_index = atomindex_to_vecindex(atom_b_index, the_atom[1])
