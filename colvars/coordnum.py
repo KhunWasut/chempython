@@ -1,14 +1,16 @@
 ##### coordnum.py #####
-# PART OF kpython.colvars module
 
 import numpy as np
-import sys
+import sys, os
 
-from ..chemmatrixaux import index_verify_1d, vecindex_to_atomindex, atomindex_to_vecindex, dx_pbc, dx_ab
+from ..chemmatrixaux import atomindex_to_vecindex as atv
+
+from .distance import dr_dxi, d2r_dxjxi
+
 from ..pbc import pair_dx
 
 
-# Data structure
+# Coordnum data structure
 class CNParams():
    def __init__(self, numer_pow=6.0, denom_pow=12.0, r0=2.0):
       self.numer_pow = numer_pow
@@ -16,92 +18,86 @@ class CNParams():
       self.r0 = r0
 
 
-def n_ab(r_ab, r0, numer_pow):
-   return (1.0-((r_ab)/(r0))**(numer_pow))
+# Auxillary methods for D_ab_k and N_ab_k
+def n_ab_k(r_ab_k, r0, numer_pow):
+   return (1.0-(r_ab_k/r0)**(numer_pow))
 
 
-def d_ab(r_ab, r0, denom_pow):
-   return (1.0-((r_ab)/(r0))**(denom_pow))
+def d_ab_k(r_ab_k, r0, denom_pow):
+   return (1.0-(r_ab_k/r0)**(denom_pow))
 
 
-def dn_ab_dxi(r_ab, r0, numer_pow, vec_index_i, atom_a_index, atom_b_index, L):
-   # Need to come back and assert that r_ab corresponds to vec_index_i
-   dx = dx_ab(vec_index_i, atom_a_index, atom_b_index, L)
-   return (-1.0)*dx*(r_ab**(numer_pow-2))*(numer_pow)/(r0**numer_pow)
+def dn_dd(exp, r_ab, r0):
+   return ((-exp)*((r_ab/r0)**(exp-1)))
 
 
-def dd_ab_dxi(r_ab, r0, denom_pow, vec_index_i, atom_a_index, atom_b_index, L):
-   # Need to come back and assert that r_ab corresponds to vec_index_i
-   dx = dx_ab(vec_index_i, atom_a_index, atom_b_index, L)
-   return (-1.0)*dx*(r_ab**(denom_pow-2))*(denom_pow)/(r0**denom_pow)
+def grad_x(X_m, atom_a_index, atom_b_indices, cn_params, L):
+   # Simplify variable names
+   a = atom_a_index
+   b_list = atom_b_indices
+   n = cn_params.numer_pow
+   m = cn_params.denom_pow
+   r0 = cn_params.r0
 
+   # n,d method aliases
+   N = n_ab_k
+   D = d_ab_k
 
-def first_deriv_cn(X_m, atom_a_index, atom_b_list_of_indices, sys_params, mg_o_cn_params):
-   # INPUT PARAMETERS:
-   #    X_m: m-th datapoint's coordinates (3N x 1 size)
-   #    atom_a_index: atom a's index (1 atom)
-   #    atom_b_list_of_indices: list of indices for atom b (n atoms)
-   #    mg_o_cn_params: The CN parameter object
-   # OUTPUT PARAMETER:
-   #    grad_x(cn): Gradient vector of CN wrt all x in X_m (3N x 1 size)
-   
-   try:
-      L = sys_params['L']
-   except KeyError:
-      print('KeyError: In second_deriv_rab_wrt_xj: sys_params contains no box size \'L\'.')
-      sys.exit(1)
+   x_a = np.array([X_m[atv(a,'x')], X_m[atv(a,'y')], X_m[atv(a,'z')]])
 
-   grad_x_cn = []
+   grad_x_list = []
 
-   for vec_index_i in range(X_m.shape):
-      sum_grad = 0.0
-      for atom_b_index in atom_b_list_of_indices:
-         x_a_x_index = atomindex_to_vecindex(atom_a_index, 'x'.lower())
-         x_a_y_index = atomindex_to_vecindex(atom_a_index, 'y'.lower())
-         x_a_z_index = atomindex_to_vecindex(atom_a_index, 'z'.lower())
-         x_b_x_index = atomindex_to_vecindex(atom_b_index, 'x'.lower())
-         x_b_y_index = atomindex_to_vecindex(atom_b_index, 'y'.lower())
-         x_b_z_index = atomindex_to_vecindex(atom_b_index, 'z'.lower())
-
-         x_a = np.array([X_m[x_a_x_index], X_m[x_a_y_index], X_m[x_a_z_index]])
-         x_b = np.array([X_m[x_b_x_index], X_m[x_b_y_index], X_m[x_b_z_index]])
+   for i in range(X_m.shape):
+      sum_dcn_dxi = 0.0
+      for b in b_list:
+         x_b = np.array([X_m[atv(b,'x')], X_m[atv(b,'y')], X_m[atv(b,'z')]])
          r_ab = pair_dx(x_a, x_b, L)
 
-         n_ab_thisterm = n_ab(r_ab, mg_o_cn_params.r0, mg_o_cn_params.numer_pow)
-         d_ab_thisterm = d_ab(r_ab, mg_o_cn_params.r0, mg_o_cn_params.denom_pow)
-         dn_ab_dxi_thisterm = dn_ab_dxi(r_ab, mg_o_cn_params.r0, mg_o_cn_params.numer_pow, vec_index_i, atom_a_index, atom_b_index, L)
-         dd_ab_dxi_thisterm = dd_ab_dxi(r_ab, mg_o_cn_params.r0, mg_o_cn_params.denom_pow, vec_index_i, atom_a_index, atom_b_index, L)
+         factor = D(r_ab, r0, m)**(-2.0)
+         grad_firstterm = (-n)*D(r_ab, r0, m)*((r_ab/r0)**(n-1.0))*dr_dxi(x_a, x_b, a, b, i, L, r_ab)
+         grad_secondterm = (-m)*N(r_ab, r0, n)*((r_ab/r0)**(m-1.0))*dr_dxi(x_a, x_b, a, b, i, L, r_ab)
 
-         addition = (d_ab_thisterm*dn_ab_dxi_thisterm - n_ab_thisterm*dd_ab_dxi_thisterm)/(d_ab_thisterm**2.0)
-         sum_grad += addition
+         sum_dcn_dxi += (factor*(grad_firstterm - grad_secondterm))
 
-      grad_x_cn.append(sum_grad)
+      grad_x_list.append(sum_dcn_dxi)
 
-   return np.array(grad_x_cn)
+   return np.array(grad_x_list)
 
 
-def second_deriv_cn_wrt_xj(X_m, vec_index_j, atom_a_index, atom_b_list_of_indices, sys_params, mg_o_cn_params):
+def hess_x_j(X_m, atom_a_index, atom_b_indices, vec_index_j, cn_params, L):
+   a = atom_a_index
+   b_list = atom_b_indices
+   j = vec_index_j
+   n = cn_params.numer_pow
+   m = cn_params.denom_pow
+   r0 = cn_params.r0
 
-   try:
-      L = sys_params['L']
-   except KeyError:
-      print('KeyError: In second_deriv_rab_wrt_xj: sys_params contains no box size \'L\'.')
-      sys.exit(1)
+   N = n_ab_k
+   D = d_ab_k
 
-   hess_xj_cn = []
+   x_a = np.array([X_m[atv(a,'x')], X_m[atv(a,'y')], X_m[atv(a,'z')]])
 
-   for vec_index_i in range(X_m.shape):
-      sum_grad = 0.0
-      for atom_b_index in atom_b_list_of_indices:
-         x_a_x_index = atomindex_to_vecindex(atom_a_index, 'x'.lower())
-         x_a_y_index = atomindex_to_vecindex(atom_a_index, 'y'.lower())
-         x_a_z_index = atomindex_to_vecindex(atom_a_index, 'z'.lower())
-         x_b_x_index = atomindex_to_vecindex(atom_b_index, 'x'.lower())
-         x_b_y_index = atomindex_to_vecindex(atom_b_index, 'y'.lower())
-         x_b_z_index = atomindex_to_vecindex(atom_b_index, 'z'.lower())
+   hess_x_j_list = []
 
-         x_a = np.array([X_m[x_a_x_index], X_m[x_a_y_index], X_m[x_a_z_index]])
-         x_b = np.array([X_m[x_b_x_index], X_m[x_b_y_index], X_m[x_b_z_index]])
+   for i in range(X_m.shape):
+      sum_d2cn_dxjxi = 0.0
+      for b in b_list:
+         x_b = np.array([X_m[atv(b,'x')], X_m[atv(b,'y')], X_m[atv(b,'z')]])
          r_ab = pair_dx(x_a, x_b, L)
 
-         possible_domains = [x_a_x_index, x_a_y_index, x_a_z_index, x_b_x_index, x_b_y_index, x_b_z_index]
+         factor = D(r_ab, r0, m)**(-4.0)
+         hess_t1 = D(r_ab, r0, m) * d2r_dxjxi(x_a, x_b, a, b, i, j, L, r_ab) * dn_dd(n, r_ab, r0)
+         hess_t2 = (-n) * D(r_ab, r0, m) * (-1.0) * dn_dd(n-1, r_ab, r0) * dr_dxi(x_a, x_b, a, b, i, L, r_ab) * dr_dxi(x_a, x_b, a, b, j, L, r_ab)
+         hess_t3 = dn_dd(n, r_ab, r0) * dr_dxi(x_a, x_b, a, b, i, L, r_ab) * dn_dd(m, r_ab, r0) * dr_dxi(x_a, x_b, a, b, j, L, r_ab)
+         hess_t4 = N(r_ab, r0, n) * d2r_dxjxi(x_a, x_b, a, b, i, j, L, r_ab) * dn_dd(m, r_ab, r0)
+         hess_t5 = (-m) * N(r_ab, r0, n) * (-1.0) * dn_dd(m-1, r_ab, r0) * dr_dxi(x_a, x_b, a, b, i, L, r_ab) * dr_dxi(x_a, x_b, a, b, j, L, r_ab)
+         hess_t6 = dn_dd(m, r_ab, r0) * dr_dxi(x_a, x_b, a, b, i, L, r_ab) * dn_dd(n, r_ab, r0) * dr_dxi(x_a, x_b, a, b, j, L, r_ab)
+
+         group1 = hess_t1 + hess_t2 + hess_t3
+         group2 = hess_t4 + hess_t5 + hess_t6
+
+         sum_d2cn_dxjxi += (factor*(group1 - group2))
+
+      hess_x_j_list.append(sum_d2cn_dxjxi)
+
+   return np.array(hess_x_j_list)
