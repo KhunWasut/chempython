@@ -112,3 +112,16 @@ def dx_ab(X_m, vec_index_i, atom_a_index, atom_b_index, L):
       x_a_oneaxis = X_m[atomindex_to_vecindex(atom_a_index, atom_b_axis)]
 
       return dx_pbc(x_a_oneaxis, x_b_oneaxis, L)*(-1.0)
+
+
+def d_dx_ab(vec_index_i, atom_a_index, abom_b_index):
+   # Works similar to dx_ab, but this will mainly be used with second derivatives where 
+   # the terms that do not relate to atom a or b in the expression goes to zero.
+
+   if index_verify_1d(vec_index_i, atom_a_index, atom_b_index) == 'NA':
+      return 0.0
+   elif index_verify_1d(vec_index_i, atom_a_index, atom_b_index) == 'FT':
+      return 1.0
+   elif index_verify_1d(vec_index_i, atom_a_index, atom_b_index) == 'LT':
+      return -1.0
+

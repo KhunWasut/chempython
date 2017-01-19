@@ -1,13 +1,47 @@
 ##### namd_interface.py #####
 
 import numpy as np
-import re
+import re, os
 
+from .file_io import read_xyz
 
 # This is hardcoded for now
 head_pattern = re.compile(r'CRYST')
 first_atom_pattern = re.compile(r'LIT')
 end_pattern = re.compile(r'END')
+
+
+def read_pdb_snapshots(snapshot_dir_prefix):
+   file_pattern = re.compile(r'snapshot(\d+)(\w*).(\w+)')
+   snapshot_dir_ls = os.listdir(snapshot_dir_prefix)
+
+   # Sort for the highest number
+   snapshot_index_list = []
+   for filename in snapshot_dir_ls:
+      if file_pattern.search(filename):
+         snapshot_index = eval(file_pattern.search(filename).group(1))
+         snapshot_index_list.append(snapshot_index)
+
+   num_snapshots = max(snapshot_index_list)
+
+   # Actually reading the files. The list holds n numpy vectors.
+   snapshots_coord_list = []
+   snapshots_force_list = []
+
+   for i in range(num_snapshots):
+      coord_file_obj = open(os.path.join(snapshot_dir_prefix,'snapshot{0}.coord.xyz'.format(i+1)),'r')
+      force_file_obj = open(os.path.join(snapshot_dir_prefix,'snapshot{0}.force.xyz'.format(i+1)),'r')
+
+      coord_content = read_xyz(coord_file_obj)
+      force_content = read_xyz(force_file_obj)
+
+      snapshots_coord_list.append(coord_content)
+      snapshots_force_list.append(force_content)
+
+      coord_file_obj.close()
+      force_file_obj.close()
+
+   return (snapshots_coord_list, snapshots_force_list)
 
 
 def write_single_pdb(headline, frame_lines, count, pdb_type):
@@ -69,7 +103,6 @@ def write_namd_conf_for_force(index, **kwargs):
    file_obj.write('set inputname\t"snapshot{0}"\n'.format(index))
    file_obj.write('structure\tstructure.psf\n')
    file_obj.write('coordinates\t$inputname.pdb\n')
-   file_obj.write('velocities\t$inputname.vel\n\n')
     
    file_obj.write('set outputname\t"snapshot{0}.out"\n'.format(index))
    file_obj.write('outputname\t$outputname\n')
@@ -83,7 +116,8 @@ def write_namd_conf_for_force(index, **kwargs):
    file_obj.write('switching\ton\n')
    file_obj.write('switchdist\t{0}\n'.format(switchdist))
    file_obj.write('pairlistdist\t{0}\n\n'.format(pairlistdist))
-    
+   
+   file_obj.write('temperature\t0.0\n')
    file_obj.write('timestep\t{0}\n'.format(dt))
    file_obj.write('rigidbonds\tall\n\n')
     
