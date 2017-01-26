@@ -6,8 +6,12 @@ import os, re
 
 
 # Read necessary data from our workspace scheme
+# These arrays need to be sorted!
 x_snapshot_filelist = os.listdir('./x-snapshots')
 f_snapshot_filelist = os.listdir('./f-snapshots')
+
+x_snapshot_filelist.sort(key=kp.utils.natural_keys)
+f_snapshot_filelist.sort(key=kp.utils.natural_keys)
 
 # Assert equal length
 assert(len(x_snapshot_filelist) == len(f_snapshot_filelist))
