@@ -56,9 +56,9 @@ def dx_pbc(x_a, x_b, vec_index_i, L):
    dx = x_a[axis] - x_b[axis]
 
    if (x_a[axis] - x_b[axis]) > L/2:
-      dx -= L/2
+      dx -= L
    elif (x_a[axis] - x_b[axis]) < -L/2:
-      dx += L/2
+      dx += L
 
    return dx
 
@@ -85,9 +85,9 @@ def d_dx_pbc(atom_a_index, atom_b_index, vec_index_k, vec_index_l):
    else:
       # Check if axis in l and k indices are the same
       if vecindex_to_atomindex(vec_index_l)[1] == vecindex_to_atomindex(vec_index_k)[1]:
-         if index_verify_1d(vec_index_k, atom_a_index, atom_b_index) == 'FT':
+         if index_verify_1d(vec_index_l, atom_a_index, atom_b_index) == 'FT':
             return 1.0
-         elif index_verify_1d(vec_index_k, atom_a_index, atom_b_index) == 'LT':
+         elif index_verify_1d(vec_index_l, atom_a_index, atom_b_index) == 'LT':
             return -1.0
          else:
             return 0.0
