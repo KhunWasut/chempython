@@ -31,6 +31,21 @@ def dn_dd(exp, r_ab, r0):
    return ((-exp)*((r_ab/r0)**(exp-1)))
 
 
+# Calculate the first derivatives of both numerator and denominator
+# The answers are simplified in terms of the values of num/denom themselves
+# for ease of debug / readability
+# dN/dxi = n(N-1)(dr/dxi)/r_ab
+# dD/dxi = m(D-1)(dr/dxi)/r_ab
+def dN_xi(n, r0, x_a, x_b, a, b, i, L, r_ab):
+   N = n_ab_k(r_ab, r0, n)
+   return (n*(N-1.0)*(dr_dxi(x_a, x_b, a, b, i, L, r_ab))/r_ab)
+
+
+def dD_xi(m, r0, x_a, x_b, a, b, i, L, r_ab):
+   D = d_ab_k(r_ab, r0, n)
+   return (m*(D-1.0)*(dr_dxi(x_a, x_b, a, b, i, L, r_ab))/r_ab)
+
+
 def grad_x(X_m, atom_a_index, atom_b_indices, cn_params, L):
    # Simplify variable names
    a = atom_a_index
@@ -53,9 +68,12 @@ def grad_x(X_m, atom_a_index, atom_b_indices, cn_params, L):
          x_b = np.array([X_m[atv(b,'x')], X_m[atv(b,'y')], X_m[atv(b,'z')]])
          r_ab = pair_dx(x_a, x_b, L)
 
-         factor = D(r_ab, r0, m)**(-2.0)
-         grad_firstterm = (-n)*D(r_ab, r0, m)*((r_ab/r0)**(n-1.0))*dr_dxi(x_a, x_b, a, b, i, L, r_ab)
-         grad_secondterm = (-m)*N(r_ab, r0, n)*((r_ab/r0)**(m-1.0))*dr_dxi(x_a, x_b, a, b, i, L, r_ab)
+         D_val = D(r_ab, r0, m)
+         N_val = N(r_ab, r0, n)
+
+         factor = D_val**(-2.0)
+         grad_firstterm = D_val * dN_xi(n, r0, x_a, x_b, a, b, i, L, r_ab)
+         grad_secondterm = N_val * dD_xi(m, r0, x_a, x_b, a, b, i, L, r_ab)
 
          sum_dcn_dxi += (factor*(grad_firstterm - grad_secondterm))
 
@@ -85,18 +103,32 @@ def hess_x_j(X_m, atom_a_index, atom_b_indices, vec_index_j, cn_params, L):
          x_b = np.array([X_m[atv(b,'x')], X_m[atv(b,'y')], X_m[atv(b,'z')]])
          r_ab = pair_dx(x_a, x_b, L)
 
-         factor = D(r_ab, r0, m)**(-4.0)
-         hess_t1 = D(r_ab, r0, m) * d2r_dxjxi(x_a, x_b, a, b, i, j, L, r_ab) * dn_dd(n, r_ab, r0)
-         hess_t2 = (-n) * D(r_ab, r0, m) * (-1.0) * dn_dd(n-1, r_ab, r0) * dr_dxi(x_a, x_b, a, b, i, L, r_ab) * dr_dxi(x_a, x_b, a, b, j, L, r_ab)
-         hess_t3 = dn_dd(n, r_ab, r0) * dr_dxi(x_a, x_b, a, b, i, L, r_ab) * dn_dd(m, r_ab, r0) * dr_dxi(x_a, x_b, a, b, j, L, r_ab)
-         hess_t4 = N(r_ab, r0, n) * d2r_dxjxi(x_a, x_b, a, b, i, j, L, r_ab) * dn_dd(m, r_ab, r0)
-         hess_t5 = (-m) * N(r_ab, r0, n) * (-1.0) * dn_dd(m-1, r_ab, r0) * dr_dxi(x_a, x_b, a, b, i, L, r_ab) * dr_dxi(x_a, x_b, a, b, j, L, r_ab)
-         hess_t6 = dn_dd(m, r_ab, r0) * dr_dxi(x_a, x_b, a, b, i, L, r_ab) * dn_dd(n, r_ab, r0) * dr_dxi(x_a, x_b, a, b, j, L, r_ab)
+         D_val = D(r_ab, r0, m)
+         N_val = N(r_ab, r0, n)
+         dDj = dD_xi(m, r0, x_a, x_b, a, b, j, L, r_ab)
+         dNj = dN_xi(n, r0, x_a, x_b, a, b, j, L, r_ab)
+         d2r_ji = d2r_xjxi(x_a, x_b, a, b, i, j, L, r_ab) 
+         dr_i = dr_dxi(x_a, x_b, a, b, i, L, r_ab)
+         dr_j = dr_dxi(x_a, x_b, a, b, j, L, r_ab)
 
-         group1 = hess_t1 + hess_t2 + hess_t3
-         group2 = hess_t4 + hess_t5 + hess_t6
+         factor = D_val**(-4.0)
+         hess_t1_1 = dr_i*(n*D_val*dNj)/r_ab
+         hess_t1_2 = dr_i*(n*(N_val-1.0)*dDj)/r_ab
+         hess_t1_3 = n*D_val*(N_val - 1.0)*d2r_ji/r_ab
+         hess_t1_4 = (-1.0)*n*D_val*(N_val - 1.0)*dr_i*(dr_j/(r_ab*r_ab))
+         hess_t1 = (D_val * D_val) * (hess_t1_1 + hess_t1_2 + hess_t1_3 + hess_t1_4)
 
-         sum_d2cn_dxjxi += (factor*(group1 - group2))
+         hess_t2_1 = dr_i*(m*N_val*dDj)/r_ab
+         hess_t2_2 = dr_i*(m*(D_val-1.0)*dNj)/r_ab
+         hess_t2_3 = m*N_val*(D_val - 1.0)*d2r_ji/r_ab
+         hess_t2_4 = (-1.0)*m*N_val*(D_val - 1.0)*dr_i*(dr_j/(r_ab*r_ab))
+         hess_t2 = (D_val * D_val) * (hess_t2_1 + hess_t2_2 + hess_t2_3 + hess_t2_4)
+
+         hess_t3_1 = n*D_val*(N_val-1.0)*dr_i*dDj/r_ab
+         hess_t3_2 = m*N_val*(D_val-1.0)*dr_i*dDj/r_ab
+         hess_t3 = 2.0*D_val*(hess_t3_1 - hess_t3_2)
+
+         sum_d2cn_dxjxi += (factor*(hess_t1 - hess_t2 - hess_t3))
 
       hess_x_j_list.append(sum_d2cn_dxjxi)
 
