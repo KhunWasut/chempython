@@ -25,4 +25,4 @@ class CNParams:
         self.b_inds = b_list
         self.n = n
         self.m = m
-        self.r0 = 0
+        self.r0 = r0
