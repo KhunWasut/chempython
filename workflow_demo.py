@@ -46,7 +46,7 @@ mass_vec = np.array(masses)
 mass_vec_atomic = mass_vec*(1.66054e-27/9.10938e-31)
 mu = np.diag(mass_vec)
 
-##### END OF PART 2 - MAKE SURE THIS PART WORKS BEFORE PROCEEDING! #####
+##### END OF PART 2 - CHECKED!! #####
 
 icf_atomic = []
 CN = kp.colvars.coordnum.CNParams(numer_pow=10.0, denom_pow=26.0, r0=3.2)
