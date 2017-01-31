@@ -51,7 +51,7 @@ def index_verify_1d(vec_index_i, atom_a_index, atom_b_index):
 def dx_pbc(x_a, x_b, vec_index_i, L):
    # Calculate x_a - x_b given vec_index_i
    # x_a = [x_ax, x_ay, x_az], similar to x_b
-   axis = vecindex_to_atomindex(vec_index_i)[1]
+   axis = axis_to_number[vecindex_to_atomindex(vec_index_i)[1]]
 
    dx = x_a[axis] - x_b[axis]
 
