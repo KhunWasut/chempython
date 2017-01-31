@@ -64,7 +64,7 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
 
     def secondterm(X_m, r_a, r_b, cn_params, L, G_w_inv, W, mu, grad_cv, num_cv=2):
         sum_divergence = np.zeros(num_cv)        # D x 1
-        for i in range(X_m.shape):
+        for i in range(X_m.shape[0]):
             hess_x_i_r = rhess_x_j(X_m, r_a, r_b, i, L)
             hess_x_i_cn = cnhess_x_j(X_m, i, cn_params, L)
 
