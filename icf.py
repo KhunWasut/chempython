@@ -60,11 +60,12 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
     W = w_construct(mu, grad_cv_t)
     G_w = g_w_construct(W, grad_cv_t.T)
     G_w_inv = np.linalg.inv(G_w)
+    mu_inv = inv_mu(mu)
 
     def firstterm(W, G_w_inv, grad_V):
         return (-1.0)*(np.matmul(np.matmul(G_w_inv,W),grad_V))   # D x 1
 
-    def secondterm(X_m, r_a, r_b, cn_params, L, G_w_inv, W, mu, grad_cv, num_cv=2):
+    def secondterm(X_m, r_a, r_b, cn_params, L, G_w_inv, W, mu_inv, grad_cv, num_cv=2):
         sum_divergence = np.zeros(num_cv)        # D x 1
         for i in range(X_m.shape[0]):
             # The below line is for debugging purposes only!!
@@ -73,14 +74,24 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
             hess_x_i_r = rhess_x_j(X_m, r_a, r_b, i, L)
             hess_x_i_cn = cnhess_x_j(X_m, i, cn_params, L)
 
-            hess_cv_t = np.array([hess_x_i_r, hess_x_i_cn])
+            hess_cv_t = np.array([hess_x_i_r, hess_x_i_cn])     # D x 3N
+            zero_matrix_d3n = np.zeros((num_cv, X_m.shape[0]))
 
-            first_subterm = np.matmul(np.matmul(G_w_inv, hess_cv_t), inv_mu(mu))    # D x 3N
+            # Define is_zero_hess boolean if hess_cv_t is close enough to a D x 3N zero matrix
+            is_zero_hess = np.allclose(hess_cv_t, zero_matrix_d3n)
+
+            if is_zero_hess:
+                first_subterm = zero_matrix_d3n  # D x 3N
+            else:
+                first_subterm = np.matmul(np.matmul(G_w_inv, hess_cv_t), mu_inv)    # D x 3N
             
             # Second subterm parts
-            second_subterm_innermost = np.matmul(W, hess_cv_t.T) + np.matmul(np.matmul(hess_cv_t, inv_mu(mu)), grad_cv)
-            second_subterm_front = np.matmul(np.matmul(G_w_inv*(-1.0), second_subterm_innermost), G_w_inv)
-            second_subterm = np.matmul(second_subterm_front, W)     # D x 3N
+            if is_zero_hess:
+                second_subterm = zero_matrix_d3n   # D x 3N
+            else:
+                second_subterm_innermost = np.matmul(W, hess_cv_t.T) + np.matmul(np.matmul(hess_cv_t, mu_inv), grad_cv)
+                second_subterm_front = np.matmul(np.matmul(G_w_inv*(-1.0), second_subterm_innermost), G_w_inv)
+                second_subterm = np.matmul(second_subterm_front, W)     # D x 3N
 
             d_GwinvW_dxi = first_subterm + second_subterm
             sum_divergence += d_GwinvW_dxi[:, i]
@@ -89,4 +100,4 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
 
         return (kT * sum_divergence)        # D x 1
 
-    return firstterm(W, G_w_inv, grad_V) + secondterm(X_m, r_a, r_b, cn_params, L, G_w_inv, W, mu, grad_cv_t.T, num_cv=2)    # D x 1
+    return firstterm(W, G_w_inv, grad_V) + secondterm(X_m, r_a, r_b, cn_params, L, G_w_inv, W, mu_inv, grad_cv_t.T, num_cv=2)    # D x 1
