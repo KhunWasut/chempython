@@ -22,6 +22,8 @@
 
 import numpy as np
 
+import time
+
 from .colvars.params import RParams, CNParams
 from .colvars.distance import grad_x as rgrad_x
 from .colvars.distance import hess_x_j as rhess_x_j
@@ -67,6 +69,7 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
         for i in range(X_m.shape[0]):
             # The below line is for debugging purposes only!!
             print('Currently evaluating element {0}'.format(i))
+            t1 = time.time()
             hess_x_i_r = rhess_x_j(X_m, r_a, r_b, i, L)
             hess_x_i_cn = cnhess_x_j(X_m, i, cn_params, L)
 
@@ -81,6 +84,8 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
 
             d_GwinvW_dxi = first_subterm + second_subterm
             sum_divergence += d_GwinvW_dxi[:, i]
+            t2 = time.time()
+            print('Time taking to evaluate element {0} is {1:.2f} seconds'.format(i, t2-t1))
 
         return (kT * sum_divergence)        # D x 1
 
