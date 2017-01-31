@@ -47,7 +47,7 @@ def hess_x_j(X_m, atom_a_index, atom_b_index, vec_index_j, L):
    x_b = np.array([X_m[atv(b,'x')], X_m[atv(b,'y')], X_m[atv(b,'z')]])
    r_ab = pair_dx(x_a, x_b, L)
 
-   for i in range(X_m.shape):
+   for i in range(X_m.shape[0]):
       hess_x_j_list.append(d2r_dxjxi(x_a, x_b, a, b, i, j, L, r_ab))
 
    return np.array(hess_x_j_list)
