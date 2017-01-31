@@ -24,6 +24,7 @@ import numpy as np
 
 import .colvars.distance as cv_r
 import .colvars.coordnum as cv_cn
+from .colvars.params import RParams, CNParams
 
 
 def inv_mu(mu):
@@ -44,10 +45,10 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
     # grad_V is 3N x 1
     # hess_r, hess_cn is 3N x 3N each
 
-    r_a = r_params.atom_a_index
-    r_b = r_params.atom_b_index
-    cn_a = cn_params.atom_a_index
-    cn_b_list = cn_params.atom_b_indices
+    r_a = r_params.a_ind
+    r_b = r_params.b_ind
+    cn_a = cn_params.a_ind
+    cn_b_list = cn_params.b_inds
 
     grad_r = cv_r.grad_x(X_m, r_params.atom_a_index, r_params.atom_b_index, L)
     grad_cn = cv_cn.grad_x(X_m, cn_params.atom_a_index, cn_params.atom_b_indices, cn_params, L)
@@ -73,7 +74,7 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
             
             # Second subterm parts
             second_subterm_innermost = np.matmul(W, hess_cv_t.T) + np.matmul(np.matmul(hess_cv_t, inv_mu(mu)), grad_cv)
-            second_subterm_front = (-1.0)*(np.matmul(np.matmul(G_w_inv, second_subterm_innermost), G_w_inv))
+            second_subterm_front = np.matmul(np.matmul(G_w_inv*(-1.0), second_subterm_innermost), G_w_inv)
             second_subterm = np.matmul(second_subterm_front, W)     # D x 3N
 
             d_GwinvW_dxi = first_subterm + second_subterm
