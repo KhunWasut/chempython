@@ -9,6 +9,8 @@ from .distance import dr_dxi, d2r_dxjxi
 
 from ..pbc import pair_dx
 
+from .params import CNParams
+
 
 # Coordnum data structure
 class CNParams():
@@ -46,12 +48,12 @@ def dD_xi(m, r0, x_a, x_b, a, b, i, L, r_ab):
    return (m*(D-1.0)*(dr_dxi(x_a, x_b, a, b, i, L, r_ab))/r_ab)
 
 
-def grad_x(X_m, atom_a_index, atom_b_indices, cn_params, L):
+def grad_x(X_m, cn_params, L):
    # Simplify variable names
-   a = atom_a_index
-   b_list = atom_b_indices
-   n = cn_params.numer_pow
-   m = cn_params.denom_pow
+   a = cn_params.a_ind
+   b_list = cn_params.b_inds
+   n = cn_params.n
+   m = cn_params.m
    r0 = cn_params.r0
 
    # n,d method aliases
@@ -62,7 +64,7 @@ def grad_x(X_m, atom_a_index, atom_b_indices, cn_params, L):
 
    grad_x_list = []
 
-   for i in range(X_m.shape):
+   for i in range(X_m.shape[0]):
       sum_dcn_dxi = 0.0
       for b in b_list:
          x_b = np.array([X_m[atv(b,'x')], X_m[atv(b,'y')], X_m[atv(b,'z')]])
@@ -82,9 +84,9 @@ def grad_x(X_m, atom_a_index, atom_b_indices, cn_params, L):
    return np.array(grad_x_list)
 
 
-def hess_x_j(X_m, atom_a_index, atom_b_indices, vec_index_j, cn_params, L):
-   a = atom_a_index
-   b_list = atom_b_indices
+def hess_x_j(X_m, vec_index_j, cn_params, L):
+   a = cn_params.a_ind
+   b_list = cn_params.b_inds
    j = vec_index_j
    n = cn_params.numer_pow
    m = cn_params.denom_pow
@@ -97,7 +99,7 @@ def hess_x_j(X_m, atom_a_index, atom_b_indices, vec_index_j, cn_params, L):
 
    hess_x_j_list = []
 
-   for i in range(X_m.shape):
+   for i in range(X_m.shape[0]):
       sum_d2cn_dxjxi = 0.0
       for b in b_list:
          x_b = np.array([X_m[atv(b,'x')], X_m[atv(b,'y')], X_m[atv(b,'z')]])
