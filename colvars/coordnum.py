@@ -44,7 +44,7 @@ def dN_xi(n, r0, x_a, x_b, a, b, i, L, r_ab):
 
 
 def dD_xi(m, r0, x_a, x_b, a, b, i, L, r_ab):
-   D = d_ab_k(r_ab, r0, n)
+   D = d_ab_k(r_ab, r0, m)
    return (m*(D-1.0)*(dr_dxi(x_a, x_b, a, b, i, L, r_ab))/r_ab)
 
 
