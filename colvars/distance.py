@@ -30,7 +30,7 @@ def grad_x(X_m, atom_a_index, atom_b_index, L):
    x_b = np.array([X_m[atv(b,'x')], X_m[atv(b,'y')], X_m[atv(b,'z')]])
    r_ab = pair_dx(x_a, x_b, L)
 
-   for i in range(X_m.shape):
+   for i in range(X_m.shape[0]):
       grad_x_list.append(dr_dxi(x_a, x_b, a, b, i, L, r_ab))
 
    return np.array(grad_x_list)
