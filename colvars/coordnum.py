@@ -109,7 +109,7 @@ def hess_x_j(X_m, vec_index_j, cn_params, L):
          N_val = N(r_ab, r0, n)
          dDj = dD_xi(m, r0, x_a, x_b, a, b, j, L, r_ab)
          dNj = dN_xi(n, r0, x_a, x_b, a, b, j, L, r_ab)
-         d2r_ji = d2r_xjxi(x_a, x_b, a, b, i, j, L, r_ab) 
+         d2r_ji = d2r_dxjxi(x_a, x_b, a, b, i, j, L, r_ab) 
          dr_i = dr_dxi(x_a, x_b, a, b, i, L, r_ab)
          dr_j = dr_dxi(x_a, x_b, a, b, j, L, r_ab)
 
