@@ -23,6 +23,10 @@
 import numpy as np
 
 from .colvars.params import RParams, CNParams
+from .colvars.distance import grad_x as rgrad_x
+from .colvars.distance import hess_x_j as rhess_x_j
+from .colvars.coordnum import grad_x as cngrad_x
+from .colvars.coordnum import hess_x_j as cnhess_x_j
 
 
 def inv_mu(mu):
@@ -45,11 +49,9 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
 
     r_a = r_params.a_ind
     r_b = r_params.b_ind
-    cn_a = cn_params.a_ind
-    cn_b_list = cn_params.b_inds
 
-    grad_r = cv_r.grad_x(X_m, r_params.atom_a_index, r_params.atom_b_index, L)
-    grad_cn = cv_cn.grad_x(X_m, cn_params.atom_a_index, cn_params.atom_b_indices, cn_params, L)
+    grad_r = rgrad_x(X_m, r_a, r_b, L)
+    grad_cn = cngrad_x(X_m, cn_params, L)
 
     grad_cv_t = np.array([grad_r, grad_cn])     # D x 3N
 
@@ -63,8 +65,8 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
     def secondterm(X_m, r_a, r_b, cn_a, cn_b_list, L, G_w_inv, W, mu, grad_cv, num_cv=2):
         sum_divergence = np.zeros(num_cv)        # D x 1
         for i in range(X_m.shape):
-            hess_x_i_r = cv_r.hess_x_j(X_m, r_a, r_b, i, L)
-            hess_x_i_cn = cv_cn.hess_x_j(X_m, cn_a, cn_b_list, i, cn_params, L)
+            hess_x_i_r = rhess_x_j(X_m, r_a, r_b, i, L)
+            hess_x_i_cn = cnhess_x_j(X_m, i, cn_params, L)
 
             hess_cv_t = np.array([hess_x_i_r, hess_x_i_cn])
 
