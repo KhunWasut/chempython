@@ -22,8 +22,6 @@
 
 import numpy as np
 
-import .colvars.distance as cv_r
-import .colvars.coordnum as cv_cn
 from .colvars.params import RParams, CNParams
 
 
