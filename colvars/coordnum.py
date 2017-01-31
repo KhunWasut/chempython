@@ -88,8 +88,8 @@ def hess_x_j(X_m, vec_index_j, cn_params, L):
    a = cn_params.a_ind
    b_list = cn_params.b_inds
    j = vec_index_j
-   n = cn_params.numer_pow
-   m = cn_params.denom_pow
+   n = cn_params.n
+   m = cn_params.m
    r0 = cn_params.r0
 
    N = n_ab_k
