@@ -62,7 +62,7 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
     def firstterm(W, G_w_inv, grad_V):
         return (-1.0)*(np.matmul(np.matmul(G_w_inv,W),grad_V))   # D x 1
 
-    def secondterm(X_m, r_a, r_b, cn_a, cn_b_list, L, G_w_inv, W, mu, grad_cv, num_cv=2):
+    def secondterm(X_m, r_a, r_b, cn_params, L, G_w_inv, W, mu, grad_cv, num_cv=2):
         sum_divergence = np.zeros(num_cv)        # D x 1
         for i in range(X_m.shape):
             hess_x_i_r = rhess_x_j(X_m, r_a, r_b, i, L)
@@ -82,4 +82,4 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
 
         return (kT * sum_divergence)        # D x 1
 
-    return firstterm(W, G_w_inv, grad_V) + secondterm(X_m, r_a, r_b, cn_a, cn_b_list, L, G_w_inv, W, mu, grad_cv_t.T, num_cv=2)    # D x 1
+    return firstterm(W, G_w_inv, grad_V) + secondterm(X_m, r_a, r_b, cn_params, L, G_w_inv, W, mu, grad_cv_t.T, num_cv=2)    # D x 1
