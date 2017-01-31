@@ -18,7 +18,7 @@ number_to_axis = {0: 'x', 1: 'y', 2: 'z'}
 
 # Mapper
 def atomindex_to_vecindex(atom_a_index, axis):
-   return (3 * (atom_a_index) + axis_to_number['axis'])
+   return (3 * (atom_a_index) + axis_to_number[axis])
 
 
 def vecindex_to_atomindex(vec_index_i):
