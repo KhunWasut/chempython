@@ -82,4 +82,4 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
 
         return (kT * sum_divergence)        # D x 1
 
-    return firstterm(mu, G_w_inv, grad_V) + secondterm(X_m, r_a, r_b, cn_a, cn_b_list, L, G_w_inv, W, mu, grad_cv_t.T, num_cv=2)    # D x 1
+    return firstterm(W, G_w_inv, grad_V) + secondterm(X_m, r_a, r_b, cn_a, cn_b_list, L, G_w_inv, W, mu, grad_cv_t.T, num_cv=2)    # D x 1
