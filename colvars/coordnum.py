@@ -3,7 +3,7 @@
 import numpy as np
 import sys, os
 
-from ..chemmatrixaux import atomindex_to_vecindex as atv
+from ..chemmatrixaux import atomindex_to_vecindex 
 from ..chemmatrixaux import d_dx_pbc
 
 from .distance import dr_dxi, d2r_dxjxi
@@ -59,21 +59,21 @@ def grad_x(X_m, a, b_list, n, m, r0, L):
    #r0 = cn_params.r0
 
    # n,d method aliases
-   N = n_ab_k
-   D = d_ab_k
+   #N = n_ab_k
+   #D = d_ab_k
 
-   x_a = np.array([X_m[atv(a,'x')], X_m[atv(a,'y')], X_m[atv(a,'z')]])
+   x_a = np.array([X_m[atomindex_to_vecindex(a,'x')], X_m[atomindex_to_vecindex(a,'y')], X_m[atomindex_to_vecindex(a,'z')]])
 
    grad_x_list = []
 
    for i in range(X_m.shape[0]):
       sum_dcn_dxi = 0.0
       for b in b_list:
-         x_b = np.array([X_m[atv(b,'x')], X_m[atv(b,'y')], X_m[atv(b,'z')]])
+         x_b = np.array([X_m[atomindex_to_vecindex(b,'x')], X_m[atomindex_to_vecindex(b,'y')], X_m[atomindex_to_vecindex(b,'z')]])
          r_ab = pair_dx(x_a, x_b, L)
 
-         D_val = D(r_ab, r0, m)
-         N_val = N(r_ab, r0, n)
+         D_val = d_ab_k(r_ab, r0, m)
+         N_val = n_ab_k(r_ab, r0, n)
 
          factor = D_val**(-2.0)
          grad_firstterm = D_val * dN_xi(n, r0, x_a, x_b, a, b, i, L, r_ab)
@@ -95,25 +95,25 @@ def hess_x_j(X_m, vec_index_j, a, b_list, n, m, r0, L):
    #m = cn_params.m
    #r0 = cn_params.r0
 
-   N = n_ab_k
-   D = d_ab_k
+   #N = n_ab_k
+   #D = d_ab_k
 
-   x_a = np.array([X_m[atv(a,'x')], X_m[atv(a,'y')], X_m[atv(a,'z')]])
+   x_a = np.array([X_m[atomindex_to_vecindex(a,'x')], X_m[atomindex_to_vecindex(a,'y')], X_m[atomindex_to_vecindex(a,'z')]])
 
    hess_x_j_list = []
 
    for i in range(X_m.shape[0]):
       sum_d2cn_dxjxi = 0.0
       for b in b_list:
-         x_b = np.array([X_m[atv(b,'x')], X_m[atv(b,'y')], X_m[atv(b,'z')]])
+         x_b = np.array([X_m[atomindex_to_vecindex(b,'x')], X_m[atomindex_to_vecindex(b,'y')], X_m[atomindex_to_vecindex(b,'z')]])
          r_ab = pair_dx(x_a, x_b, L)
 
          # If derivatives evaluate to 0, simply bypass below calculations to save time!
          if ((d_dx_pbc(a,b,i,i)==0.0) and (d_dx_pbc(a,b,i,j)==0.0) and (d_dx_pbc(a,b,j,j)==0.0)):
             sum_d2cn_dxjxi = 0.0
          else:
-            D_val = D(r_ab, r0, m)
-            N_val = N(r_ab, r0, n)
+            D_val = d_ab_k(r_ab, r0, m)
+            N_val = n_ab_k(r_ab, r0, n)
             if d_dx_pbc(a,b,j,j) == 0.0:
                dDj = 0.0
                dNj = 0.0
