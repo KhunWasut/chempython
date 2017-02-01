@@ -16,17 +16,17 @@ from numba import jit
 
 
 # Auxillary methods for D_ab_k and N_ab_k
-@jit(nopython=True,cache=True)
+@jit(cache=True)
 def n_ab_k(r_ab_k, r0, numer_pow):
    return (1.0-(r_ab_k/r0)**(numer_pow))
 
 
-@jit(nopython=True,cache=True)
+@jit(cache=True)
 def d_ab_k(r_ab_k, r0, denom_pow):
    return (1.0-(r_ab_k/r0)**(denom_pow))
 
 
-@jit(nopython=True,cache=True)
+@jit(cache=True)
 def dn_dd(exp, r_ab, r0):
    return ((-exp)*((r_ab/r0)**(exp-1)))
 
@@ -36,13 +36,13 @@ def dn_dd(exp, r_ab, r0):
 # for ease of debug / readability
 # dN/dxi = n(N-1)(dr/dxi)/r_ab
 # dD/dxi = m(D-1)(dr/dxi)/r_ab
-@jit(nopython=True,cache=True)
+@jit(cache=True)
 def dN_xi(n, r0, x_a, x_b, a, b, i, L, r_ab):
    N = n_ab_k(r_ab, r0, n)
    return (n*(N-1.0)*(dr_dxi(x_a, x_b, a, b, i, L, r_ab))/r_ab)
 
 
-@jit(nopython=True,cache=True)
+@jit(cache=True)
 def dD_xi(m, r0, x_a, x_b, a, b, i, L, r_ab):
    D = d_ab_k(r_ab, r0, m)
    return (m*(D-1.0)*(dr_dxi(x_a, x_b, a, b, i, L, r_ab))/r_ab)

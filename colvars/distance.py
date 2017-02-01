@@ -11,12 +11,12 @@ from ..pbc import pair_dx
 from numba import jit
 
 
-@jit(nopython=True,cache=True)
+@jit(cache=True)
 def dr_dxi(x_a, x_b, a, b, i, L, r_ab):
    return d_dx_pbc(a, b, i, i)*dx_pbc(x_a, x_b, i, L)/r_ab
 
 
-@jit(nopython=True,cache=True)
+@jit(cache=True)
 def d2r_dxjxi(x_a, x_b, a, b, i, j, L, r_ab):
    factor = d_dx_pbc(a, b, i, i)/(r_ab**2.0)
    hess_firstterm = r_ab * d_dx_pbc(a, b, i, j)
