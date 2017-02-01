@@ -49,7 +49,6 @@ def dD_xi(m, r0, x_a, x_b, a, b, i, L, r_ab):
 
 
 # Use individual CN parameters as arguments instead of the object - for speedup with numba
-@jit(nopython=True,cache=True)
 def grad_x(X_m, a, b_list, n, m, r0, L):
    # Simplify variable names
    #a = cn_params.a_ind
@@ -86,7 +85,6 @@ def grad_x(X_m, a, b_list, n, m, r0, L):
    return np.array(grad_x_list)
 
 
-@jit(nopython=True,cache=True)
 def hess_x_j(X_m, vec_index_j, a, b_list, n, m, r0, L):
    #a = cn_params.a_ind
    #b_list = cn_params.b_inds

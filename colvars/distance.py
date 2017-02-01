@@ -26,7 +26,6 @@ def d2r_dxjxi(x_a, x_b, a, b, i, j, L, r_ab):
 
 
 # Constructing gradient vector grad_x(r_ab)
-@jit(nopython=True,cache=True)
 def grad_x(X_m, atom_a_index, atom_b_index, L):
    a = atom_a_index
    b = atom_b_index
@@ -41,7 +40,6 @@ def grad_x(X_m, atom_a_index, atom_b_index, L):
    return np.array(grad_x_list)
 
 
-@jit(nopython=True,cache=True)
 def hess_x_j(X_m, atom_a_index, atom_b_index, vec_index_j, L):
    a = atom_a_index
    b = atom_b_index
