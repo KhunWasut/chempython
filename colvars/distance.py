@@ -3,7 +3,7 @@
 import numpy as np
 import sys, os
 
-from ..chemmatrixaux import atomindex_to_vecindex as atv
+from ..chemmatrixaux import atomindex_to_vecindex 
 from ..chemmatrixaux import dx_pbc, d_dx_pbc
 
 from ..pbc import pair_dx
@@ -30,8 +30,8 @@ def grad_x(X_m, atom_a_index, atom_b_index, L):
    a = atom_a_index
    b = atom_b_index
    grad_x_list = []
-   x_a = np.array([X_m[atv(a,'x')], X_m[atv(a,'y')], X_m[atv(a,'z')]])
-   x_b = np.array([X_m[atv(b,'x')], X_m[atv(b,'y')], X_m[atv(b,'z')]])
+   x_a = np.array([X_m[atomindex_to_vecindex(a,'x')], X_m[atomindex_to_vecindex(a,'y')], X_m[atomindex_to_vecindex(a,'z')]])
+   x_b = np.array([X_m[atomindex_to_vecindex(b,'x')], X_m[atomindex_to_vecindex(b,'y')], X_m[atomindex_to_vecindex(b,'z')]])
    r_ab = pair_dx(x_a, x_b, L)
 
    for i in range(X_m.shape[0]):
@@ -47,8 +47,8 @@ def hess_x_j(X_m, atom_a_index, atom_b_index, vec_index_j, L):
 
    hess_x_j_list = []
 
-   x_a = np.array([X_m[atv(a,'x')], X_m[atv(a,'y')], X_m[atv(a,'z')]])
-   x_b = np.array([X_m[atv(b,'x')], X_m[atv(b,'y')], X_m[atv(b,'z')]])
+   x_a = np.array([X_m[atomindex_to_vecindex(a,'x')], X_m[atomindex_to_vecindex(a,'y')], X_m[atomindex_to_vecindex(a,'z')]])
+   x_b = np.array([X_m[atomindex_to_vecindex(b,'x')], X_m[atomindex_to_vecindex(b,'y')], X_m[atomindex_to_vecindex(b,'z')]])
    r_ab = pair_dx(x_a, x_b, L)
 
    for i in range(X_m.shape[0]):
