@@ -53,7 +53,7 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
     r_b = r_params.b_ind
 
     grad_r = rgrad_x(X_m, r_a, r_b, L)
-    grad_cn = cngrad_x(X_m, cn_params, L)
+    grad_cn = cngrad_x(X_m, cn_params.a_ind, cn_params.b_inds, cn_params.n, cn_params.m, cn_params.r0, L)
 
     grad_cv_t = np.array([grad_r, grad_cn])     # D x 3N
 
@@ -72,7 +72,7 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
             print('Currently evaluating element {0}'.format(i))
             t1 = time.time()
             hess_x_i_r = rhess_x_j(X_m, r_a, r_b, i, L)
-            hess_x_i_cn = cnhess_x_j(X_m, i, cn_params, L)
+            hess_x_i_cn = cnhess_x_j(X_m, i, cn_params.a_ind, cn_params.b_inds, cn_params.n, cn_params.m, cn_params.r0, L)
 
             hess_cv_t = np.array([hess_x_i_r, hess_x_i_cn])     # D x 3N
             zero_matrix_d3n = np.zeros((num_cv, X_m.shape[0]))
