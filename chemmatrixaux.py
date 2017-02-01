@@ -6,6 +6,8 @@
 import numpy as np
 import sys
 
+from numba import jit
+
 
 class ChemMatrixAuxException(Exception):
    pass
@@ -21,6 +23,7 @@ def atomindex_to_vecindex(atom_a_index, axis):
    return (3 * (atom_a_index) + axis_to_number[axis])
 
 
+@jit(cache=True)
 def vecindex_to_atomindex(vec_index_i):
    atom_a_index = int(vec_index_i / 3)
    axis_number = vec_index_i % 3
@@ -28,26 +31,29 @@ def vecindex_to_atomindex(vec_index_i):
 
 
 # Indices verification
+# Removed exception catching - numba does not support objects for fast calculation!
+@jit(cache=True)
 def index_verify_1d(vec_index_i, atom_a_index, atom_b_index):
    # Returns codes 'NA', 'FT', 'LT'
-   if atom_a_index == atom_b_index:
-      raise ChemMatrixAuxException
+   #if atom_a_index == atom_b_index:
+   #   raise ChemMatrixAuxException
 
-   try:
-      the_atom = vecindex_to_atomindex(vec_index_i)
+   #try:
+   the_atom = vecindex_to_atomindex(vec_index_i)
 
-      if the_atom[0] == atom_a_index:
-         return 'FT'
-      elif the_atom[0] == atom_b_index:
-         return 'LT'
-      else:
-         return 'NA'
+   if the_atom[0] == atom_a_index:
+      return 'FT'
+   elif the_atom[0] == atom_b_index:
+      return 'LT'
+   else:
+      return 'NA'
       
-   except ChemMatrixAuxException:
-      print('ChemMatrixAuxException: index_verify_1d: atom_a and atom_b cannot be the same atom!')
-      sys.exit(1)
+   #except ChemMatrixAuxException:
+   #   print('ChemMatrixAuxException: index_verify_1d: atom_a and atom_b cannot be the same atom!')
+   #   sys.exit(1)
 
 
+@jit(cache=True)
 def dx_pbc(x_a, x_b, vec_index_i, L):
    # Calculate x_a - x_b given vec_index_i
    # x_a = [x_ax, x_ay, x_az], similar to x_b
@@ -63,6 +69,7 @@ def dx_pbc(x_a, x_b, vec_index_i, L):
    return dx
 
 
+@jit(cache=True)
 def d_dx_pbc(atom_a_index, atom_b_index, vec_index_k, vec_index_l):
    # Calculate d/dx_l (x_a - x_b)| axis(k)
    # If l is not part of the domain, return 0

@@ -3,6 +3,9 @@
 # Imports
 import numpy as np
 
+from numba import jit
+
+
 # Exceptions
 class PBCException(Exception):
    pass
@@ -11,6 +14,8 @@ class PBCException(Exception):
 
 
 # Methods
+# Remove exception catching for now for using with numba
+@jit(cache=True)
 def pair_dx(c1,c2,L):
    """
    pair_dx(c1,c2,L)
@@ -31,30 +36,30 @@ def pair_dx(c1,c2,L):
    """
 
    # Check if c1 and c2 are np.ndarray
-   try:
-      if (not isinstance(c1, np.ndarray)) or (not isinstance(c2, np.ndarray)):
-         raise PBCException
+   #try:
+   #   if (not isinstance(c1, np.ndarray)) or (not isinstance(c2, np.ndarray)):
+   #      raise PBCException
 
-   except PBCException:
-      print('PBCException: Either c1 or c2 is not a numpy array. Check your code!')
-      sys.exit(1)
+   #except PBCException:
+   #   print('PBCException: Either c1 or c2 is not a numpy array. Check your code!')
+   #   sys.exit(1)
 
    # The condition must check that len(c1) = len(c2)
-   try:
-      if c1.shape != c2.shape:
-         raise PBCException
+   #try:
+   #if c1.shape != c2.shape:
+   #   raise PBCException
 
       # NumPy implementation
-      dxyz = c2 - c1    # Vector subtraction
+   dxyz = c2 - c1    # Vector subtraction
 
       # Array masks
       # The edited value should fall in desirable range so we dont need
       # to use a temp array and the following two lines will never overwrite.
-      dxyz[dxyz < (-L/2.0)] += L
-      dxyz[dxyz > (L/2.0)] -= L
+   dxyz[dxyz < (-L/2.0)] += L
+   dxyz[dxyz > (L/2.0)] -= L
 
-      return np.sqrt(np.sum(dxyz**2))
+   return np.sqrt(np.sum(dxyz**2))
      
-   except PBCException:
-      print('PBCException: Coordinate array lengthes mismatch. Exiting...')
-      sys.exit(1)
+   #except PBCException:
+   #   print('PBCException: Coordinate array lengthes mismatch. Exiting...')
+   #   sys.exit(1)

@@ -12,24 +12,21 @@ from ..pbc import pair_dx
 
 from .params import CNParams
 
-
-# Coordnum data structure
-class CNParams():
-   def __init__(self, numer_pow=6.0, denom_pow=12.0, r0=2.0):
-      self.numer_pow = numer_pow
-      self.denom_pow = denom_pow
-      self.r0 = r0
+from numba import jit
 
 
 # Auxillary methods for D_ab_k and N_ab_k
+@jit(nopython=True,cache=True)
 def n_ab_k(r_ab_k, r0, numer_pow):
    return (1.0-(r_ab_k/r0)**(numer_pow))
 
 
+@jit(nopython=True,cache=True)
 def d_ab_k(r_ab_k, r0, denom_pow):
    return (1.0-(r_ab_k/r0)**(denom_pow))
 
 
+@jit(nopython=True,cache=True)
 def dn_dd(exp, r_ab, r0):
    return ((-exp)*((r_ab/r0)**(exp-1)))
 
@@ -39,23 +36,27 @@ def dn_dd(exp, r_ab, r0):
 # for ease of debug / readability
 # dN/dxi = n(N-1)(dr/dxi)/r_ab
 # dD/dxi = m(D-1)(dr/dxi)/r_ab
+@jit(nopython=True,cache=True)
 def dN_xi(n, r0, x_a, x_b, a, b, i, L, r_ab):
    N = n_ab_k(r_ab, r0, n)
    return (n*(N-1.0)*(dr_dxi(x_a, x_b, a, b, i, L, r_ab))/r_ab)
 
 
+@jit(nopython=True,cache=True)
 def dD_xi(m, r0, x_a, x_b, a, b, i, L, r_ab):
    D = d_ab_k(r_ab, r0, m)
    return (m*(D-1.0)*(dr_dxi(x_a, x_b, a, b, i, L, r_ab))/r_ab)
 
 
-def grad_x(X_m, cn_params, L):
+# Use individual CN parameters as arguments instead of the object - for speedup with numba
+@jit(nopython=True,cache=True)
+def grad_x(X_m, a, b_list, n, m, r0, L):
    # Simplify variable names
-   a = cn_params.a_ind
-   b_list = cn_params.b_inds
-   n = cn_params.n
-   m = cn_params.m
-   r0 = cn_params.r0
+   #a = cn_params.a_ind
+   #b_list = cn_params.b_inds
+   #n = cn_params.n
+   #m = cn_params.m
+   #r0 = cn_params.r0
 
    # n,d method aliases
    N = n_ab_k
@@ -85,13 +86,14 @@ def grad_x(X_m, cn_params, L):
    return np.array(grad_x_list)
 
 
-def hess_x_j(X_m, vec_index_j, cn_params, L):
-   a = cn_params.a_ind
-   b_list = cn_params.b_inds
+@jit(nopython=True,cache=True)
+def hess_x_j(X_m, vec_index_j, a, b_list, n, m, r0, L):
+   #a = cn_params.a_ind
+   #b_list = cn_params.b_inds
    j = vec_index_j
-   n = cn_params.n
-   m = cn_params.m
-   r0 = cn_params.r0
+   #n = cn_params.n
+   #m = cn_params.m
+   #r0 = cn_params.r0
 
    N = n_ab_k
    D = d_ab_k
