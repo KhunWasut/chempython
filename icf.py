@@ -71,7 +71,7 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
         iter_time = 0.0
         for i in range(X_m.shape[0]):
             # The below line is for debugging purposes only!!
-            #print('Currently evaluating element {0}'.format(i))
+            print('Currently evaluating element {0:=4}...'.format(i+1), end='\r')
             t1 = time.time()
             hess_x_i_r = rhess_x_j(X_m, r_a, r_b, i, L)
             hess_x_i_cn = cnhess_x_j(X_m, i, cn_params.a_ind, cn_params.b_inds, cn_params.n, cn_params.m, cn_params.r0, L)
@@ -101,6 +101,7 @@ def icf_construct(X_m, mu, grad_V, kT, r_params, cn_params, L):
             iter_time += (t2 - t1)
             #print('Time taking to evaluate element {0} is {1:.2f} seconds'.format(i, t2-t1))
 
+        print('')
         print('Total time to evaluate {0} elements is {1}'.format(X_m.shape[0], str(datetime.timedelta(seconds=iter_time))))
         print('Average evaluation time per step is {0}'.format(str(datetime.timedelta(seconds=iter_time/X_m.shape[0]))))
         return (kT * sum_divergence)        # D x 1
